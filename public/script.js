@@ -182,18 +182,15 @@ document.addEventListener('DOMContentLoaded', () => {
         updateThemeIcon(true);
     }
 
-    // Tampilkan riwayat chat yang tersimpan
-    conversationHistory.forEach(msg => addMessage(msg.content, msg.isUser));
-
-    // Pesan sambutan
-    if (conversationHistory.length === 0) {
-        addMessage("Halo bro! Gue AETHERz AI nih. Ada yang bisa gue bantu? 😎", false);
+    function initializeChat() {
+        if (conversationHistory.length === 0) {
+            addMessage("Halo jing! Gue aetherz A-I nih. Ada yang bisa gue bantu?", false);
+        } else {
+            conversationHistory.forEach(msg => addMessage(msg.content, msg.isUser));
+        }
     }
 
-    // Pesan sambutan
-    if (conversationHistory.length === 0) {
-        addMessage("Halo bro! Gue AETHERz AI nih. Ada yang bisa gue bantu? 😎", false);
-    }
+    initializeChat();
 
     // Tambahkan ini di bagian bawah file, di luar DOMContentLoaded event listener
     window.speakMessage = speakMessage;
@@ -248,7 +245,7 @@ function speakMessage(button) {
                 console.error('Error loading audio');
                 speakButton.disabled = false;
                 speakButton.innerHTML = '<i class="fas fa-volume-up"></i> Bicara';
-                alert('Maaf, terjadi kesalahan saat memuat audio. Silakan coba lagi nanti.');
+                alert('Baca sendiri lah bejir!, malesan banget jadi manusia.');
             }
         });
 
@@ -269,3 +266,6 @@ function speakMessage(button) {
         alert('Maaf, terjadi kesalahan saat memproses audio. Silakan coba lagi nanti.');
     });
 }
+
+
+

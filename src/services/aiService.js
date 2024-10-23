@@ -549,7 +549,7 @@ exports.getAIResponse = async (pesan, history = [], language = 'id') => {
     try {
         if (isAskingAboutCreator(pesan, language)) {
             const creatorResponse = language === 'id' 
-                ? "Gue dibikin sama AETHER mek!, Dia tuh yang bikin gue jadi A-I keren kayak begini. 😎"
+                ? "Gue dibikin sama AETHER dong bejir!, Dia tuh yang bikin gue jadi A-I keren kayak begini awokwokwok"
                 : "I was created by AETHER! They're the one who made me this cool AI. 😎";
             return creatorResponse;
         }
