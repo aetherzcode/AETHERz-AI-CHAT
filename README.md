@@ -40,7 +40,8 @@ AETHERz AI CHAT adalah aplikasi chat AI interaktif yang dikembangkan oleh AETHER
    npm install
    ```
 
-4.  Jika kamu ingin ganti API AI setting di `src/config/config.js`:
+4.  Jika kamu ingin ganti API AI setting di `src/config/config.js`
+    
     Ganti
     ```
      `https://rest-api.aetherss.xyz/api/ai`
