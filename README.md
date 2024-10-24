@@ -44,7 +44,7 @@ AETHERz AI CHAT adalah aplikasi chat AI interaktif yang dikembangkan oleh AETHER
     
     Ganti
     ```
-     `https://rest-api.aetherss.xyz/api/ai`
+     https://rest-api.aetherss.xyz/api/ai
     ```
     dengan API milik kamu sendiri.
 
