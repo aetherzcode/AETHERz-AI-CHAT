@@ -40,24 +40,28 @@ AETHERz AI CHAT adalah aplikasi chat AI interaktif yang dikembangkan oleh AETHER
    npm install
    ```
 
-4.  Jika kamu ingin ganti API AI setting di `src/config/config.js`
-    
-    Ganti
-    ```
-     https://rest-api.aetherss.xyz/api/ai
-    ```
-    dengan API milik kamu sendiri.
-
+4. Jika kamu ingin ganti API AI, setting di `src/config/config.js`
+   
+   Ganti
+   ```
+   https://rest-api.aetherss.xyz/api/ai
+   ```
+   dengan API milik kamu sendiri.
 
 5. Buat file `.env` di root direktori proyek dan isi dengan konfigurasi yang diperlukan:
    ```
-   AI_API_URL=https://your-ai-api-url.com
    PORT=3000
-   MONGODB_URI=mongodb+srv://username:password@your-cluster.mongodb.net/your-database?retryWrites=true&w=majority
-   SESSION_SECRET=your_session_secret
+   AI_API_URL=https://rest-api.aetherss.xyz/api/ai
+   MONGODB_URI=mongodb+srv://<username>:<password>@<your-cluster>.mongodb.net/<your-database>?retryWrites=true&w=majority
+   SESSION_SECRET=<your_session_secret>
    ```
    
-   Pastikan untuk mengganti `username`, `password`, `your-cluster`, dan `your-database` dengan informasi MongoDB Anda sendiri.
+   Pastikan untuk mengganti `<username>`, `<password>`, `<your-cluster>`, `<your-database>`, dan `<your_session_secret>` dengan database Anda sendiri.
+
+   Untuk menghasilkan SESSION_SECRET yang aman, Anda bisa menggunakan perintah berikut di PowerShell:
+   ```
+   -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | % {[char]$_})
+   ```
 
 6. Jalankan aplikasi:
    ```
@@ -79,6 +83,9 @@ AETHERz AI CHAT adalah aplikasi chat AI interaktif yang dikembangkan oleh AETHER
 ## Pengembangan
 
 Untuk menjalankan aplikasi dalam mode pengembangan dengan auto-restart:
+```
+npm run dev
+```
 
 ## Kontribusi
 
