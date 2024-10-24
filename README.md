@@ -49,13 +49,15 @@ AETHERz AI CHAT adalah aplikasi chat AI interaktif yang dikembangkan oleh AETHER
     dengan API milik kamu sendiri.
 
 
-5. Buat file `.env` dan isi dengan konfigurasi yang diperlukan:
+5. Buat file `.env` di root direktori proyek dan isi dengan konfigurasi yang diperlukan:
    ```
    AI_API_URL=https://your-ai-api-url.com
    PORT=3000
-   MONGODB_URI=string_koneksi_mongodb_anda
-   SESSION_SECRET=secret_session_anda
+   MONGODB_URI=mongodb+srv://username:password@your-cluster.mongodb.net/your-database?retryWrites=true&w=majority
+   SESSION_SECRET=your_session_secret
    ```
+   
+   Pastikan untuk mengganti `username`, `password`, `your-cluster`, dan `your-database` dengan informasi MongoDB Anda sendiri.
 
 6. Jalankan aplikasi:
    ```

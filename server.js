@@ -29,10 +29,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Session middleware
 app.use(session({
-  secret: 'your_secret_key',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // Set to true if using HTTPS
+  cookie: { secure: process.env.NODE_ENV === 'production' } // Set to true if using HTTPS
 }));
 
 // Middleware untuk membersihkan sesi yang tidak aktif
