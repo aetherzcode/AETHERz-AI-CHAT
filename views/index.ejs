@@ -21,16 +21,27 @@
                 <h1>AETHERz AI</h1>
                 <div class="status online">Online</div>
             </div>
+            <div class="user-info">
+                <span>Welcome, <%= username %></span>
+                <a href="/logout" class="icon-btn logout-btn" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
             <button id="theme-toggle" class="theme-toggle">
                 <i class="fas fa-moon"></i>
             </button>
         </div>
         <div class="chat-messages" id="chat-messages"></div>
-        <div class="chat-input">
-            <textarea id="user-input" rows="3" placeholder="Ketik pesan kamu di sini..."></textarea>
-            <button id="send-button">
-                <i class="fas fa-paper-plane"></i>
+        <div class="chat-input-container">
+            <button id="delete-chat-btn" class="icon-btn delete-chat-btn" title="Delete Chat">
+                <i class="fas fa-trash-alt"></i>
             </button>
+            <div class="chat-input">
+                <textarea id="user-input" rows="3" placeholder="Ketik pesan kamu di sini..."></textarea>
+                <button id="send-button" class="icon-btn send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
     <script src="/script.js" defer></script>

@@ -1,59 +1,64 @@
 const aiService = require('../services/aiService');
+const Chat = require('../models/Chat');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
-// Simpan sesi chat untuk setiap pengguna
-const userSessions = new Map();
+exports.renderChatPage = async (req, res) => {
+  const username = req.session.user.username;
+  let chat = await Chat.findOne({ username });
+  
+  if (!chat) {
+    chat = new Chat({ username, messages: [] });
+    await chat.save();
+  }
 
-exports.userSessions = userSessions; // Ekspor userSessions agar bisa diakses dari server.js
-
-exports.renderChatPage = (req, res) => {
-  res.render('index');
+  res.render('index', { username, messages: chat.messages });
 };
 
 exports.handleChatMessage = async (req, res) => {
-  console.log('handleChatMessage called');
-  const { message, history } = req.body;
-  const sessionId = req.headers['x-session-id'];
-
-  if (!sessionId) {
-    return res.status(400).json({ error: 'Session ID tidak ditemukan' });
-  }
+  const { message } = req.body;
+  const username = req.session.user.username;
 
   try {
-    let sessionData = userSessions.get(sessionId) || { history: [], lastAccess: Date.now() };
-    sessionData.lastAccess = Date.now();
-
-    let sessionHistory = sessionData.history.concat(history);
-
-    let reply;
-    if (message.startsWith('Explain this file:')) {
-      reply = await aiService.getAIResponse(message, sessionHistory);
-    } else {
-      reply = await aiService.getAIResponse(message, sessionHistory);
+    let chat = await Chat.findOne({ username });
+    if (!chat) {
+      chat = new Chat({ username, messages: [] });
     }
-    
-    sessionData.history = sessionHistory.concat({ role: 'user', content: message }, { role: 'assistant', content: reply });
-    userSessions.set(sessionId, sessionData);
 
-    res.json({ reply: reply });
+    chat.messages.push({ role: 'user', content: message });
+    chat.lastAccess = Date.now();
+
+    const reply = await aiService.getAIResponse(message, chat.messages);
+    chat.messages.push({ role: 'assistant', content: reply });
+
+    await chat.save();
+
+    res.json({ reply });
   } catch (error) {
-    console.error('Kesalahan pada pengontrol chat:', error);
-    res.status(500).json({ error: 'Maaf, terjadi kesalahan. Coba lagi nanti.' });
+    console.error('Error in handleChatMessage:', error);
+    res.status(500).json({ error: 'Terjadi kesalahan saat memproses permintaan lo.' });
   }
 };
 
-const { getAIResponse } = require('../services/aiService');
+exports.handleFileUpload = upload.single('file');
 
-exports.handleMessage = async (req, res) => {
-    const { message, sessionId } = req.body;
-    
-    // Perbaikan deteksi bahasa
-    const language = /[a-zA-Z]{4,}/.test(message) ? 'en' : 'id';
+exports.processUploadedFile = (req, res) => {
+  if (req.file) {
+    // Process the uploaded file here
+    // You can read the file contents and send it to the AI for analysis
+    res.json({ message: 'File uploaded successfully', filename: req.file.filename });
+  } else {
+    res.status(400).json({ error: 'No file uploaded' });
+  }
+};
 
+exports.deleteChat = async (req, res) => {
+    const username = req.session.user.username;
     try {
-        const aiResponse = await getAIResponse(message, [], language);
-        res.json({ response: aiResponse });
+        await Chat.findOneAndDelete({ username });
+        res.status(200).json({ message: 'Riwayat chat lo berhasil dihapus😏' });
     } catch (error) {
-        console.error('Error in handleMessage:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Waduh sorry ngab lagi error nih hapus chat nya:', error);
+        res.status(500).json({ error: 'Terjadi kesalahan saat menghapus riwayat chat lo' });
     }
 };

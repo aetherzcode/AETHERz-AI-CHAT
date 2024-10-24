@@ -91,20 +91,128 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
     const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
 
     console.log('Elements:', { chatMessages, userInput, sendButton, themeToggle });
 
-    // ... (kode lainnya tetap sama)
+    let conversationHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    let sessionId = localStorage.getItem('sessionId');
 
-    function sendMessage() {
+    function generateSessionId() {
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
+
+    if (!sessionId) {
+        sessionId = generateSessionId();
+        localStorage.setItem('sessionId', sessionId);
+    }
+
+    function saveHistory() {
+        localStorage.setItem('chatHistory', JSON.stringify(conversationHistory));
+    }
+    function addMessage(message, isUser = false) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', isUser ? 'user-message' : 'ai-message');
+        
+        const textElement = document.createElement('p');
+        textElement.textContent = message;
+        messageElement.appendChild(textElement);
+
+        if (!isUser) {
+            // Hapus format Markdown (### dan **)
+            message = message.replace(/###/g, '').replace(/\*\*/g, '');
+
+            const parts = message.split(/(```[\s\S]*?```)/g);
+            let formattedMessage = '';
+
+            parts.forEach((part) => {
+                if (part.startsWith('```') && part.endsWith('```')) {
+                    const [, language, code] = part.match(/```(\w+)?\n?([\s\S]*?)```/) || [null, '', part.slice(3, -3)];
+                    formattedMessage += `<div class="code-block">
+                        <div class="code-header">
+                            <span class="code-language">${language || 'Code'}</span>
+                            <button class="copy-button" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy code
+                            </button>
+                        </div>
+                        <pre><code class="${language || ''}">${escapeHtml(code.trim())}</code></pre>
+                    </div>`;
+                } else {
+                    formattedMessage += `<p>${escapeHtml(part).replace(/\n/g, '<br>')}</p>`;
+                }
+            });
+            messageElement.innerHTML = formattedMessage;
+
+            // Tambahkan tombol copy dan speaker
+            const actionButtons = document.createElement('div');
+            actionButtons.classList.add('action-buttons');
+            actionButtons.innerHTML = `
+                <button class="copy-message" onclick="copyMessage(this)">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+                <button class="speak-message" onclick="speakMessage(this)" aria-label="Bicara">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            `;
+            messageElement.appendChild(actionButtons);
+        } else {
+            messageElement.textContent = message;
+        }
+        
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        if (!isUser) {
+            messageElement.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
+    }
+    async function sendMessage() {
         console.log('sendMessage function called');
         const message = userInput.value.trim();
         console.log('Message:', message);
         if (message) {
             addMessage(message, true);
             userInput.value = '';
-            // ... (kode pengiriman pesan tetap sama)
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Session-ID': sessionId
+                    },
+                    body: JSON.stringify({ message, history: conversationHistory }),
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.reply) {
+                        setTimeout(() => {
+                            addMessage(data.reply, false);
+                        }, 1000);
+                    } else {
+                        throw new Error('Invalid response from server');
+                    }
+                } else {
+                    throw new Error('Gagal mendapatkan respons dari server');
+                }
+            } catch (error) {
+                console.error('Kesalahan:', error);
+                addMessage('Maaf, terjadi kesalahan saat memproses permintaan Anda.', false);
+            }
         }
+    }
+    function escapeHtml(unsafe) {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    window.copyCode = function(button) {
+
     }
 
     // Pastikan event listener terpasang dengan benar

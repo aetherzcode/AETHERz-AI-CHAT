@@ -1,6 +1,6 @@
 console.log('Script loaded');
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM fully loaded');
     const chatMessages = document.getElementById('chat-messages');
     const userInput = document.getElementById('user-input');
@@ -142,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function toggleTheme() {
+        const body = document.body;
         body.classList.toggle('dark-mode');
         const isDarkMode = body.classList.contains('dark-mode');
         localStorage.setItem('darkMode', isDarkMode);
@@ -149,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateThemeIcon(isDarkMode) {
-        const icon = themeToggle.querySelector('i');
+        const icon = document.querySelector('#theme-toggle i');
         if (isDarkMode) {
             icon.classList.remove('fa-moon');
             icon.classList.add('fa-sun');
@@ -168,29 +169,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    themeToggle.addEventListener('click', () => {
-        body.classList.toggle('dark-mode');
-        const isDarkMode = body.classList.contains('dark-mode');
-        localStorage.setItem('darkMode', isDarkMode);
-        updateThemeIcon(isDarkMode);
-    });
+    themeToggle.addEventListener('click', toggleTheme);
 
     // Check for saved theme preference
     const savedTheme = localStorage.getItem('darkMode');
     if (savedTheme === 'true') {
-        body.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
         updateThemeIcon(true);
     }
 
-    function initializeChat() {
-        if (conversationHistory.length === 0) {
+    function initializeChat(initialMessages) {
+        chatMessages.innerHTML = '';
+        initialMessages.forEach(msg => addMessage(msg.content, msg.role === 'user'));
+        if (initialMessages.length === 0) {
             addMessage("Halo jing! Gue aetherz A-I nih. Ada yang bisa gue bantu?", false);
-        } else {
-            conversationHistory.forEach(msg => addMessage(msg.content, msg.isUser));
         }
     }
 
-    initializeChat();
+    try {
+        const response = await fetch('/api/chat/messages');
+        if (response.ok) {
+            const { messages } = await response.json();
+            initializeChat(messages);
+        } else {
+            throw new Error('Failed to fetch chat messages');
+        }
+    } catch (error) {
+        console.error('Error fetching chat messages:', error);
+        initializeChat([]);
+    }
+
+    const deleteChatBtn = document.getElementById('delete-chat-btn');
+    deleteChatBtn.addEventListener('click', deleteChat);
+
+    async function deleteChat() {
+        if (confirm('Apa lo yakin pengen hapus semua chat ini? kalo iya klik Oke aja bejir!')) {
+            try {
+                const response = await fetch('/api/chat/delete', {
+                    method: 'DELETE',
+                });
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                const text = await response.text();
+                console.log('Response text:', text);
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('Failed to parse response as JSON:', e);
+                    throw new Error('Server returned invalid JSON');
+                }
+                if (response.ok) {
+                    chatMessages.innerHTML = '';
+                    conversationHistory = [];
+                    localStorage.removeItem('chatHistory');
+                    alert('Riwayat chat lo udah dihapus bejir.');
+                    initializeChat([]); // Reinitialize the chat
+                } else {
+                    throw new Error(data.error || 'Gagal menghapus riwayat chat');
+                }
+            } catch (error) {
+                console.error('Error deleting chat history:', error);
+                alert(`Terjadi kesalahan saat menghapus riwayat chat lo: ${error.message}`);
+            }
+        }
+    }
 
     // Tambahkan ini di bagian bawah file, di luar DOMContentLoaded event listener
     window.speakMessage = speakMessage;
@@ -267,5 +310,23 @@ function speakMessage(button) {
     });
 }
 
-
+document.getElementById('upload-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        if (response.ok) {
+            addMessage(`File uploaded successfully: ${data.filename}`, true);
+        } else {
+            addMessage(`Error uploading file: ${data.error}`, true);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        addMessage('Error uploading file', true);
+    }
+});
 

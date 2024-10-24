@@ -1,29 +1,42 @@
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
-    const usernameInput = document.getElementById('username');
+    const loginBox = document.querySelector('.login-box');
     
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const username = usernameInput.value.trim();
-        if (username) {
-            localStorage.setItem('username', username);
-            
-            // Tambahkan animasi sederhana
-            loginForm.style.opacity = '0';
-            loginForm.style.transform = 'translateY(-20px)';
-            loginForm.style.transition = 'all 0.3s ease';
-            
-            setTimeout(() => {
-                window.location.href = '/chat';
-            }, 300);
-        }
-    });
-
-    // Tambahkan animasi saat halaman dimuat
-    document.body.style.opacity = '0';
-    document.body.style.transition = 'opacity 0.5s ease';
+    // Add fade-in animation
+    loginBox.style.opacity = '0';
+    loginBox.style.transform = 'translateY(20px)';
+    loginBox.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
     
     setTimeout(() => {
-        document.body.style.opacity = '1';
-    }, 100);
+        loginBox.style.opacity = '1';
+        loginBox.style.transform = 'translateY(0)';
+    }, 200);
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username }),
+            });
+            
+            if (response.ok) {
+                loginBox.style.opacity = '0';
+                loginBox.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 500);
+            } else {
+                alert('Login failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('An error occurred. Please try again.');
+        }
+    });
 });

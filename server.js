@@ -10,6 +10,11 @@ const cors = require('cors');
 const axios = require('axios');
 const config = require('./src/config/config');
 const FormData = require('form-data');
+const session = require('express-session');
+const connectDB = require('./src/config/database');
+
+// Connect to MongoDB
+connectDB();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,8 +22,18 @@ const port = process.env.PORT || 3000;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Middleware
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Session middleware
+app.use(session({
+  secret: 'your_secret_key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Set to true if using HTTPS
+}));
 
 // Middleware untuk membersihkan sesi yang tidak aktif
 const TWO_DAYS_IN_MS = 2 * 24 * 60 * 60 * 1000; // 2 hari dalam milidetik
@@ -32,10 +47,34 @@ setInterval(() => {
   });
 }, 6 * 60 * 60 * 1000); // Cek setiap 6 jam
 
-// Rute untuk halaman login
-app.get('/', chatController.renderChatPage);
+const isAuthenticated = (req, res, next) => {
+  if (req.session && req.session.user) {
+    next();
+  } else {
+    res.redirect('/login');
+  }
+};
 
-app.use('/api', chatRoutes);
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+app.post('/login', (req, res) => {
+  const { username } = req.body;
+  if (username) {
+    req.session.user = { username };
+    res.redirect('/');
+  } else {
+    res.status(400).json({ error: 'Username is required' });
+  }
+});
+
+app.get('/', isAuthenticated, chatController.renderChatPage);
+
+app.use('/api', (req, res, next) => {
+  console.log(`Received ${req.method} request to ${req.url}`);
+  next();
+}, chatRoutes);
 
 app.post('/api/tts', ttsController.generateTTS);
 
@@ -72,6 +111,15 @@ const fs = require('fs');
 if (!fs.existsSync(uploadsDir)){
     fs.mkdirSync(uploadsDir);
 }
+
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error destroying session:', err);
+    }
+    res.redirect('/login');
+  });
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

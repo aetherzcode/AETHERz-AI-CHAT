@@ -17,8 +17,11 @@
     "dotenv": "^10.0.0",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
+    "express-session": "^1.18.1",
     "form-data": "^4.0.1",
     "gtts": "^0.2.1",
+    "mongodb": "^6.10.0",
+    "mongoose": "^8.7.2",
     "multer": "^1.4.5-lts.1",
     "say": "^0.16.0"
   },
@@ -26,6 +29,6 @@
     "nodemon": "^2.0.22"
   },
   "engines": {
-    "node": "20.x"
+    "node": "18.x"
   }
 }
